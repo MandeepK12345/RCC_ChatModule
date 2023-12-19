@@ -7,6 +7,7 @@ import Form from "react-bootstrap/Form";
 import Row from "react-bootstrap/Row";
 import Container from "react-bootstrap/Container";
 import InputGroup from "react-bootstrap/InputGroup";
+import { toast } from "react-toastify";
 import ButtonComponent from "../../components/Button";
 import { useNavigate } from "react-router-dom";
 import { routesPath } from "../../Router/routes";
@@ -79,16 +80,18 @@ export default function Login() {
 				payload, // Phone and password API call
 				(response) => {
 					if (response.status === 200) {
-						const { accessToken } = response?.data.data;
-						localStorage.setItem("accessToken".accessToken);
+						const { accessToken,email } = response?.data.data;
+						toast.success(`${email} successfully loggedin.`);
+						localStorage.setItem("accessToken",accessToken);
+						navigate(routesPath.DASHBOARD);
 					}
 				},
 				(error) => {
-					console.log("error", error);
+
+					const {response:{data:{message}}}=error;
+					toast.error(message);
 				}
 			);
-
-			// navigate(routesPath.HOMESCREEN);
 		}
 	};
 
