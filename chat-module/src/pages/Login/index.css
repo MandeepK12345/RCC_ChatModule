@@ -1,0 +1,31 @@
+.login-wrapper__passwordField {
+	position: relative;
+}
+
+.login-wrapper__eyeImage {
+	right: 10px;
+	position: absolute;
+	width: 40px ;
+	top: 28px;
+}
+
+.login-wrapper__label{	
+    display: flex;
+	justify-content: center;
+    font-weight: 600;
+    font-size: 30px;
+}
+.mb-3{
+	display: flex;
+	justify-content: space-between;
+}
+
+.mt5{
+	margin-top: 5px;
+}
+
+
+.countryCode{
+	position: absolute;
+}
+
