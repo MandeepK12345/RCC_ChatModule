@@ -1,37 +1,36 @@
-import React, { useEffect } from "react";
-import InputComponent from "../../components/Input";
-import Images from "../../utils/images";
-import PhoneInput from "react-phone-input-2";
-import "react-phone-input-2/lib/bootstrap.css";
-import Form from "react-bootstrap/Form";
-import Row from "react-bootstrap/Row";
-import Container from "react-bootstrap/Container";
-import InputGroup from "react-bootstrap/InputGroup";
+import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import ButtonComponent from "../../components/Button";
 import { useNavigate } from "react-router-dom";
-import { routesPath } from "../../Router/routes";
+import PhoneInput from "react-phone-input-2";
+import { useDispatch } from "react-redux";
+import "react-phone-input-2/lib/bootstrap.css";
+import { Form, Row, Container, InputGroup } from "react-bootstrap";
+import { setUser } from "../../state";
+import InputComponent from "../../components/input";
+import Images from "../../utils/images";
+import ButtonComponent from "../../components/button";
 import TextMsg from "../../constants/textMessages";
 import postApiCall from "../../api/methods";
 import endPoint from "../../api/endPoint";
+import { routesPath } from "../../router/routes";
 import { emailPattern, passwordPattern, numRegex } from "../../utils/common";
 import "./index.css";
 
-
-
-export default function Login() {
-
-	const [showPassword, setShowPassword] = React.useState(false);
+export default function Signup() {
+	const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
 	const [dataLogin, setDataLogin] = React.useState({
 		email: "",
 		password: "",
+		confirmPassword: "",
 	});
 	const [errors, setErrors] = React.useState({});
 	const [disableSubmitButton, setDisableSubmitButton] = React.useState(false);
 	const [phonePrefix, setPhonePrefix] = React.useState(false);
 	const [showPhoneField, setShowPhoneField] = React.useState(false);
 	const [phoneDropDown, setPhoneDropDown] = React.useState("");
+	const [countryCode, setCountryCode] = useState("+91");
 	const navigate = useNavigate();
+	const dispatch = useDispatch();
 
 	useEffect(() => {
 		if (dataLogin?.email?.match(numRegex)) {
@@ -49,11 +48,11 @@ export default function Login() {
 
 	const submitHandler = (event) => {
 		event.preventDefault();
-		const phonePattren = new RegExp("^[0-9]+$");
-		const { email, password } = dataLogin;
+		const phonePattern = new RegExp("^[0-9]+$");
+		const { email, password, confirmPassword } = dataLogin;
 		const errors = {};
 		if (phonePrefix) {
-			if (!email.match(phonePattren)) {
+			if (!email.match(phonePattern)) {
 				errors.phone = TextMsg.Login.validMobile;
 			}
 		} else {
@@ -63,32 +62,88 @@ export default function Login() {
 				errors.email = TextMsg.Login.validEmail;
 			}
 		}
+
 		if (!password) {
 			errors.password = TextMsg.Login.passwordUndefined;
 		} else if (!password.match(passwordPattern)) {
 			errors.password = TextMsg.Login.validPassword;
 		}
+
+		if (!confirmPassword) {
+			errors.confirmPassword = TextMsg.Login.passwordUndefined;
+		} else if (!confirmPassword.match(passwordPattern)) {
+			errors.confirmPassword = TextMsg.Login.validPassword;
+		}
+
+		if (password !== confirmPassword) {
+			errors.confirmPassword = "confirm password should be same";
+		}
 		setErrors({ ...errors });
 		if (!Object.keys(errors).length) {
 			//login api call
-			const payload = {
+			let payload = {
 				email,
 				password,
+				confirmPassword,
 			};
+
+			if (showPhoneField || phonePrefix) {
+				payload = {
+					countryCode: countryCode,
+					phoneNo: email,
+				};
+			}
+
+			// Sign Up API call
 			postApiCall(
-				endPoint.userLogin,
-				payload, // Phone and password API call
+				endPoint.userSignup,
+				payload,
 				(response) => {
-					if (response.status === 200) {
-						const { accessToken,email } = response?.data.data;
-						toast.success(`${email} successfully loggedin.`);
-						localStorage.setItem("accessToken",accessToken);
-						navigate(routesPath.DASHBOARD);
+					if (response.data.httpCode === 200) {
+						const {
+							data: { email, countryCode },
+							message
+						} = response?.data;
+
+						let payloadGenerateOtp = { email };
+						toast.success(message);
+						dispatch(setUser({ ...response?.data?.data }));
+
+						if (showPhoneField || phonePrefix) {
+							payloadGenerateOtp = {
+								countryCode,
+								phoneNo: dataLogin?.email,
+							};
+						}
+
+						// generate OTP api after successful signup
+
+						postApiCall(
+							endPoint.generateOTP,
+							payloadGenerateOtp,
+							(response) => {
+								if (response?.data.httpCode === 200) {
+									toast.success(response.data.message);
+									navigate(routesPath.VERIFY);
+								}
+							},
+							(error) => {
+								const {
+									response: {
+										data: { message },
+									},
+								} = error;
+								toast.error(message);
+							}
+						);
 					}
 				},
 				(error) => {
-
-					const {response:{data:{message}}}=error;
+					const {
+						response: {
+							data: { message },
+						},
+					} = error;
 					toast.error(message);
 				}
 			);
@@ -106,13 +161,13 @@ export default function Login() {
 		setPhoneDropDown(dataLogin.email);
 	};
 
-	const inbuiltPhoneHandler = (event) => {
-		console.info("event", event);
+	const inbuiltPhoneHandler = (value, data) => {
+		setCountryCode("+" + data.dialCode);
 	};
 	return (
 		<Container className="login-wrapper mt-4">
 			<Form>
-				<Row className="login-wrapper__label mb-4">Login Form</Row>
+				<Row className="login-wrapper__label mb-4">Register Form</Row>
 				<Row>
 					{showPhoneField ? (
 						<PhoneInput
@@ -156,40 +211,41 @@ export default function Login() {
 						</>
 					)}
 				</Row>
-
 				<Row className="login-wrapper__passwordField">
 					<InputComponent
-						type={showPassword ? "text" : "password"}
-						label="Password"
+						type="password"
+						label="Create Password"
 						name="password"
-						placeholder="Enter your Password"
+						placeholder="Enter your new Password"
 						onChange={handleInputChange}
 						value={dataLogin.password}
 						error={errors.password}
 					/>
+				</Row>
+				<Row className="login-wrapper__passwordField">
+					<InputComponent
+						type={showConfirmPassword ? "text" : "password"}
+						label="Confirm Password"
+						name="confirmPassword"
+						placeholder="Confirm your new Password"
+						onChange={handleInputChange}
+						value={dataLogin.confirmPassword}
+						error={errors.confirmPassword}
+					/>
 					<img
 						src={Images.VisibilityIcon}
 						className="login-wrapper__eyeImage"
-						onClick={() => setShowPassword(!showPassword)}
-					/>
-				</Row>
-				<Row className="mt5">
-					<ButtonComponent
-						label="Submit"
-						btnHandler={submitHandler}
-						disable={disableSubmitButton}
+						onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+						alt="eyeImage"
 					/>
 				</Row>
 
-				<Row className="mt-2">
-					<span>Don't have account yet ?</span>
-					<a
-						onClick={() => navigate(routesPath.SIGNUP)}
-						href="javascript:void(0)"
-						class="link-primary"
-					>
-						Signup
-					</a>
+				<Row className="mt5">
+					<ButtonComponent
+						label="Signup"
+						btnHandler={submitHandler}
+						disable={disableSubmitButton}
+					/>
 				</Row>
 			</Form>
 		</Container>

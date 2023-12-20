@@ -15,9 +15,8 @@
 	border-radius: 0.3em;
 	background-color: #ffffff;
 	outline: none;
-	 /*Hide number field arrows*/
-	 -moz-appearance: textfield;
 }
+
 
 .alignCentre {
 	text-align: center;

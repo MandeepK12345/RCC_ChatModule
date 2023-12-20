@@ -1,7 +1,7 @@
-import Login from "../pages/Login";
-import Signup from "../pages/SignUp";
-import VerifyAccount from "../pages/VerifyAccount";
-import Dashboard from "../pages/Dashboard";
+import Login from "../pages/login";
+import Signup from "../pages/signUp";
+import VerifyAccount from "../pages/verifyAccount";
+import Dashboard from "../pages/dashboard";
 
 const routesPath = {
 	LOGIN: "/",
