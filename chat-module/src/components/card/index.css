@@ -1,0 +1,33 @@
+.cardContainer{
+    /* margin: 10px; */
+    /* border: 2px solid teal; */
+    border-top : 2px solid teal;
+    padding: 10px;
+}
+
+.cardBox{
+    padding : 10px 10px 10px 50px;
+    display: flex;
+    flex-direction: row;
+    cursor: pointer;
+    >img{
+        border-radius: 50%;
+    }
+}
+.textStyle{
+    width: 100%;
+    padding:20px;
+}
+
+.card-title{
+    font-size: 20px !important;
+    font-weight: 600 !important;
+    text-align: left;
+   
+}
+
+.card-text{
+  
+    text-align: left;
+   
+}

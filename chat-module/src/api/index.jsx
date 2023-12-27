@@ -15,6 +15,8 @@ const createAxiosClient = function ({ options }) {
 			const token = null;
 			if (token) {
 				config.headers.Authorization = "Bearer " + token;
+			}else{
+				config.headers.Authorization = `Basic ${btoa("rcc:rcc@123")}`
 			}
 
 			return config;
@@ -33,8 +35,7 @@ const axiosInstance = createAxiosClient({
 		timeout: 30000,
 		headers: {
 			deviceId: "abc@123",
-			devicetype: 1,
-			Authorization: `Basic ${btoa("rcc:rcc@123")}`,
+			devicetype: 1
 		},
 	},
 });

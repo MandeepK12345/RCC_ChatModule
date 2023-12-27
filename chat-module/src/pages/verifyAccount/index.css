@@ -34,3 +34,8 @@
 .mt-15{
     margin-top: 15px;
 }
+.verifyAccount-wrapper{
+	display: flex;
+    align-items: center;
+    flex-direction: column;
+}

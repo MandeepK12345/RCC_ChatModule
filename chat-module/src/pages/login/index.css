@@ -6,7 +6,7 @@
 	right: 10px;
 	position: absolute;
 	width: 40px ;
-	top: 28px;
+	top: 35px;
 }
 
 .login-wrapper__label{	
@@ -29,3 +29,17 @@
 	position: absolute;
 }
 
+.toggleBtn{
+	.btn-check{
+		display: none;
+	}
+}
+.toggle-active{
+	background:#007bff !important;
+}
+
+.phoneInput{
+	.form-control{
+		width: 100%;
+	}
+}

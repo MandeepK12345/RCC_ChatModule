@@ -1,10 +1,10 @@
 import { Row, Container } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
 import endPoint from "../../api/endPoint";
 import ButtonComponent from "../../components/button";
-import postApiCall from "../../api/methods";
+import { postApiCall} from "../../api/methods";
 import { routesPath } from "../../router/routes";
 import "./index.css";
 
@@ -14,12 +14,16 @@ const otpData = {};
 
 export default function VerifyAccount() {
 	const navigate = useNavigate();
-	const userInfo = useSelector((state) => state.user);
+	const userInfo = useSelector((state) => state?.user);
+	const location = useLocation();
+	const forgotPasswordEmail = location?.state?.forgotPasswordEmail;
 
-	const validateOtp = () => {
+	const generatePayLoad=()=>{
 		const { otp1, otp2, otp3, otp4 } = otpData;
-		const code = `${otp1}${otp2}${otp3}${otp4}`;
-		const { email, countryCode, mobileNo } = userInfo;
+		let code = undefined;
+		if (otp1 && otp2 && otp3 && otp4) code = `${otp1}${otp2}${otp3}${otp4}`;
+
+		const { email, countryCode, mobileNo } = userInfo||{};
 		const phoneNo = mobileNo?.substr(countryCode?.length);
 
 		let payload = {
@@ -33,16 +37,25 @@ export default function VerifyAccount() {
 				code: 4321 || parseInt(code), // for now hardcoded , will remove it
 			};
 		}
+
+		return {payload, code }
+	}
+
+	const otpApi = (endPoint,payload,fromResendOtp)=>{
 		postApiCall(
-			endPoint.verify,
+		 	endPoint,
 			payload,
 			(response) => {
 				const {
 					data: { statusCode, data, message },
 				} = response;
 				if (statusCode === 200) {
-					localStorage.setItem("token", data["token"]);
 					toast.success(message);
+					if(fromResendOtp) return;
+
+					if(forgotPasswordEmail)
+					navigate(routesPath.RESETPASSWORD,{state:{resetEmail:forgotPasswordEmail}});
+					else
 					navigate(routesPath.DASHBOARD);
 				}
 			},
@@ -55,6 +68,17 @@ export default function VerifyAccount() {
 				toast.error(message);
 			}
 		);
+	}
+
+	const validateOtp = () => {
+		const {code,payload}= generatePayLoad();
+		if (code) {
+			const url=forgotPasswordEmail ? endPoint.validateForgotPassword : endPoint.verify;
+			const apiPayLoad = forgotPasswordEmail
+			? { email: forgotPasswordEmail, otp: parseInt(code) }
+			: payload;
+			otpApi(url,apiPayLoad)
+		}
 	};
 
 	const handleOnChange = (e, name) => {
@@ -100,13 +124,24 @@ export default function VerifyAccount() {
 		}
 	};
 
+	const resendOtp = ()=>{
+        otpApi(endPoint.resendOtp,{email:forgotPasswordEmail},true)
+	}
+
 	return (
-		<Container className="alignCentre">
+		<Container className="alignCentre verifyAccount-wrapper">
 			<h1>Verify your Account</h1>
 			<p className="mt-15">
 				We have just sent an OTP to your registered{" "}
-				{userInfo.mobileNo ? "mobile number" : "email"} i.e. {userInfo.mobileNo}
-				{userInfo.email}
+				{forgotPasswordEmail ? (
+					<span>email i.e {forgotPasswordEmail}</span>
+				) : (
+					<span>
+						{userInfo?.mobileNo ? "mobile number" : "email"} i.e.{" "}
+						{userInfo?.mobileNo}
+						{userInfo?.email}
+					</span>
+				)}
 			</p>
 
 			<Row className="inputfieldContainer mt-15">
@@ -128,6 +163,15 @@ export default function VerifyAccount() {
 			<Row className="mt-15">
 				<ButtonComponent label="VERIFY OTP" btnHandler={validateOtp} />
 			</Row>
+			<Row className="mt-2">
+					 <a
+						onClick={resendOtp}
+						href="javascript:void(0)"
+						class="link-primary"
+					>
+						 Resend Otp
+					</a>
+				</Row>
 		</Container>
 	);
 }

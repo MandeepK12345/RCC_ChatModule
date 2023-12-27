@@ -1,0 +1,46 @@
+
+.chat-wrapper {
+    height: 85vh;
+}
+.sender-chat {
+	font-size: 20px;
+	color: #74D75D;
+	text-align: right;
+    
+}
+
+.receiver-chat {
+	font-size: 20px;
+	color: green;
+	text-align: left;
+}
+
+.chat-section {
+	padding: 50px;
+}
+
+.sendMessage {
+	display: flex;
+}
+
+.mb-4 {
+	width: 100%;
+}
+
+.chat-input-wrapper {
+	margin: 10px;
+	display: flex;
+	gap: 10px;
+
+	
+	> button {
+		width: 200px;
+		margin-left: 10px;
+	}
+}
+
+.chat-input{
+    font-size: 20px !important;
+    height: 50px !important;
+}
+

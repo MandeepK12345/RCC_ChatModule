@@ -1,0 +1,9 @@
+.friendList-wrapper{
+    height: 81vh;
+}
+
+.user-welcomeMsg {
+    font-size: 30px;
+    font-weight: 600;
+    margin:20px 0px;
+}
